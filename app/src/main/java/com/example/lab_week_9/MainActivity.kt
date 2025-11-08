@@ -15,7 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.lab_week_9.ui.theme.LAB_WEEK_9Theme
+import com.example.lab_week_9.ui.theme.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,15 +33,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// ✅ Data class untuk menampung nama
-data class Student(
-    var name: String
-)
+// Data Model
+data class Student(var name: String)
 
-// ✅ Parent Composable: mengatur state dan event handler
+// ===============================
+// 🏠 Home Composable
+// ===============================
 @Composable
 fun Home() {
-    // Daftar Student (mutable dan bisa diingat antar recomposition)
     val listData = remember {
         mutableStateListOf(
             Student("Tanu"),
@@ -50,15 +49,15 @@ fun Home() {
         )
     }
 
-    // State untuk input text
     var inputField = remember { mutableStateOf(Student("")) }
 
-    // Panggil HomeContent sebagai child composable
     HomeContent(
-        listData,
-        inputField.value,
-        { input -> inputField.value = inputField.value.copy(name = input) },
-        {
+        listData = listData,
+        inputField = inputField.value,
+        onInputValueChange = { input ->
+            inputField.value = Student(input)
+        },
+        onButtonClick = {
             if (inputField.value.name.isNotBlank()) {
                 listData.add(inputField.value)
                 inputField.value = Student("")
@@ -67,7 +66,9 @@ fun Home() {
     )
 }
 
-// ✅ Child Composable: menampilkan UI dan menerima event
+// ===============================
+// 🧩 HomeContent (UI)
+// ===============================
 @Composable
 fun HomeContent(
     listData: SnapshotStateList<Student>,
@@ -83,7 +84,10 @@ fun HomeContent(
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = stringResource(id = R.string.enter_item))
+                // Title
+                OnBackgroundTitleText(
+                    text = stringResource(id = R.string.enter_item)
+                )
 
                 // Input Field
                 TextField(
@@ -94,26 +98,23 @@ fun HomeContent(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Tombol Submit
-                Button(onClick = { onButtonClick() }) {
-                    Text(text = stringResource(id = R.string.button_click))
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
+                // Submit Button
+                PrimaryTextButton(
+                    text = stringResource(id = R.string.button_click),
+                    onClick = onButtonClick
+                )
             }
         }
 
-        // Menampilkan daftar item (RecyclerView versi Compose)
-        items(listData) { item ->
+        // List of Students
+        items(listData) { student ->
             Column(
                 modifier = Modifier
                     .padding(vertical = 4.dp)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = item.name)
+                OnBackgroundItemText(text = student.name)
             }
         }
     }
