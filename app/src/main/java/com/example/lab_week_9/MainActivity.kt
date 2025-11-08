@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    App(navController = navController)
+                    App(navController)
                 }
             }
         }
@@ -46,16 +46,15 @@ fun App(navController: NavHostController) {
     ) {
         composable("home") {
             Home { listData ->
-                navController.navigate("resultContent/?listData=$listData")
+                val encoded = java.net.URLEncoder.encode(listData, "UTF-8")
+                navController.navigate("resultContent/$encoded")
             }
         }
         composable(
-            "resultContent/?listData={listData}",
+            "resultContent/{listData}",
             arguments = listOf(navArgument("listData") { type = NavType.StringType })
         ) {
-            ResultContent(
-                listData = it.arguments?.getString("listData").orEmpty()
-            )
+            ResultContent(listData = it.arguments?.getString("listData").orEmpty())
         }
     }
 }
@@ -89,7 +88,7 @@ fun Home(
             }
         },
         navigateFromHomeToResult = {
-            navigateFromHomeToResult(listData.toList().toString())
+            navigateFromHomeToResult(listData.joinToString { it.name })
         }
     )
 }
@@ -112,15 +111,13 @@ fun HomeContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                OnBackgroundTitleText(
-                    text = stringResource(id = R.string.enter_item)
-                )
+                Text("Enter Student Name", style = MaterialTheme.typography.titleLarge)
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TextField(
                     value = inputField.name,
-                    onValueChange = { onInputValueChange(it) },
+                    onValueChange = onInputValueChange,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     label = { Text("Student Name") },
                     modifier = Modifier.fillMaxWidth()
@@ -131,14 +128,12 @@ fun HomeContent(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    PrimaryTextButton(
-                        text = stringResource(id = R.string.button_click),
-                        onClick = onButtonClick
-                    )
-                    PrimaryTextButton(
-                        text = stringResource(id = R.string.button_navigate),
-                        onClick = navigateFromHomeToResult
-                    )
+                    Button(onClick = onButtonClick) {
+                        Text("Add")
+                    }
+                    Button(onClick = navigateFromHomeToResult) {
+                        Text("Navigate")
+                    }
                 }
             }
         }
@@ -150,7 +145,7 @@ fun HomeContent(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                OnBackgroundItemText(text = student.name)
+                Text(student.name)
             }
         }
     }
@@ -164,8 +159,8 @@ fun ResultContent(listData: String) {
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        OnBackgroundTitleText(text = "Result Page")
+        Text("Result Page", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(8.dp))
-        OnBackgroundItemText(text = listData)
+        Text(listData)
     }
 }
